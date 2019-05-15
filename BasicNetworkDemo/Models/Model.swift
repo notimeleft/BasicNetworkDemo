@@ -7,6 +7,7 @@
 //
 
 import Foundation
+
 let questionCellReuseId = "questionCell"
 let answerCellReuseId = "answerCell"
 
@@ -61,7 +62,3 @@ struct AnswersRequest:Codable {
     }
 }
 
-
-enum RequestType{
-    case question,answer
-}

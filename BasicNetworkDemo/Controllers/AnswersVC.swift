@@ -12,19 +12,48 @@ class AnswerViewController:UITableViewController{
     
     var question:QuestionsRequest.Question?
     var answers = [AnswersRequest.Answer]()
+    var answerRequest:AnswerRequest?
     
     override func viewDidLoad() {
         navigationItem.title = question?.title.htmlToString
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 400
-        requestAndUpdate()
+        setupAnswerRequest()
     }
     
-    func requestAndUpdate(){
-        if let questionId = question?.id,let answersRequest = NetworkRequest(questionId: questionId){
-            answersRequest.makeNetworkRequest(dataHandler: updateTableView)
+    func setupAnswerRequest(){
+        if let questionId = question?.id{
+            answerRequest = AnswerRequest(questionId: questionId, dataHandler: updateTableView)
         }
     }
+    
+    @IBAction func sortAnswersTapped(_ sender: UIBarButtonItem) {
+        let alertVC = UIAlertController(title: "Sort by:", message: nil, preferredStyle: .actionSheet)
+        let sortByVotes = UIAlertAction(title: "votes", style: .default, handler: sortByFilter)
+        let sortByActivity = UIAlertAction(title: "activity", style: .default, handler: sortByFilter)
+        let sortByHot = UIAlertAction(title: "creation", style: .default, handler: sortByFilter)
+        let cancel = UIAlertAction(title: "cancel", style: .cancel, handler: nil)
+        alertVC.addAction(sortByVotes)
+        alertVC.addAction(sortByActivity)
+        alertVC.addAction(sortByHot)
+        alertVC.addAction(cancel)
+        //get the source view and frame of the button itself, for iPad display
+        if let sourceView = sender.value(forKey:"view") as? UIView {
+            alertVC.popoverPresentationController?.sourceView = sourceView
+            alertVC.popoverPresentationController?.sourceRect = sourceView.frame
+        }
+        self.present(alertVC, animated:true)
+    }
+    
+    func sortByFilter(action:UIAlertAction){
+        switch action.title{
+        case "votes": answerRequest?.newRequest(sort: "votes", dataHandler: updateTableView)
+        case "activity": answerRequest?.newRequest(sort: "activity", dataHandler: updateTableView)
+        case "creation": answerRequest?.newRequest(sort: "creation", dataHandler: updateTableView)
+        default: return
+        }
+    }
+    
     
     func updateTableView(data:Data)throws -> Void{
         let result = try JSONDecoder().decode(AnswersRequest.self, from: data)
